@@ -1,0 +1,199 @@
+/* Admin Layout Styles */
+.admin-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff; /* keep background white */
+}
+
+/* push content below fixed navbar */
+.admin-main {
+  flex: 1;              /* push footer to bottom when content is small */
+  padding-top: 80px;    /* match navbar height */
+}
+
+/* Admin pages full width with padding */
+.admin-content {
+  width: 100%;
+  margin: 0;
+  padding: 20px 32px;
+  box-sizing: border-box;
+}
+
+/* Navbar Styles */
+.admin-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: #3b82f6; /* same blue as candidate navbar */
+  border-bottom: 1px solid #2563eb;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+  z-index: 1000;
+}
+
+/* Shared container (same as candidate) */
+.nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* ⬅️ left-align logo + dashboard */
+  gap: 2rem;                   /* ⬅️ space between logo and links */
+  height: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.logo-img {
+  height: 210px !important;     /* Increase this as you want */
+  width: auto !important;
+  object-fit: contain;
+  display: block;
+}
+
+/* Make logo a bit bigger in admin navbar too */
+.admin-navbar .logo-img {
+  height: 180px !important;     /* Increase logo height */
+  width: auto !important;       /* Auto adjust width to maintain aspect ratio */
+  object-fit: contain;
+  display: block;
+}
+
+.logo-fallback {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Navigation Links */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  color: #eff6ff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.82rem;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+/* Hover: light blue on blue */
+.nav-link:hover {
+  background: #60a5fa;
+  color: #f9fafb;
+}
+
+/* Active: same as hover */
+.nav-link.active {
+  background: #60a5fa;
+  color: #f9fafb;
+}
+
+/* Icons follow text color */
+.nav-icon {
+  font-size: 0.9rem;
+  color: inherit;
+}
+
+/* Profile Section (no longer used, but harmless to keep) */
+.nav-profile {
+  display: flex;
+  align-items: center;
+}
+
+.profile-trigger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 999px;
+  transition: background 0.2s ease;
+  outline: none;
+}
+
+.profile-trigger:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.profile-trigger:focus,
+.profile-trigger:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.profile-trigger-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.profile-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(15, 23, 42, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #eff6ff;
+  font-size: 0.9rem;
+}
+
+.profile-arrow {
+  font-size: 0.7rem;
+  color: #eff6ff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .nav-container {
+    padding: 0 16px;
+    gap: 1rem; /* keep small space between logo and dashboard on mobile */
+  }
+
+  .nav-links {
+    gap: 0.5rem;
+  }
+
+  .nav-link {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.72rem;
+  }
+
+  .nav-icon {
+    font-size: 0.8rem;
+  }
+
+  .profile-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  /* hide link text, keep icons on mobile */
+  .nav-link span {
+    display: none;
+  }
+
+  .admin-content {
+    padding: 15px;
+  }
+}

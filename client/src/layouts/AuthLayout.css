@@ -1,0 +1,17 @@
+/* src/layouts/AuthLayout.css */
+
+.auth-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff; /* keep entire auth area white */
+}
+
+.auth-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px 16px;
+  background-color: #ffffff; /* no grey band */
+}

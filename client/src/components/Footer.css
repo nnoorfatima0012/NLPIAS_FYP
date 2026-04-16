@@ -1,0 +1,119 @@
+/* src/components/Footer.css */
+
+.site-footer {
+  /* Keep footer inside the app width instead of forcing 100vw */
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+
+  /* REMOVE these (they caused horizontal scroll)
+     width: 100vw;
+     margin-left: calc(50% - 50vw);
+  */
+
+  background-color: #020617; /* very dark navy */
+  color: #e5e7eb;            /* light grey text */
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding: 36px 40px 28px;
+  box-sizing: border-box;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* rest same as before */
+
+.footer-columns {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.footer-column {
+  min-width: 140px;
+}
+
+.footer-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f9fafb;
+  margin-bottom: 12px;
+}
+
+.footer-link {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  color: #e5e7eb;
+  text-decoration: none;
+  margin-bottom: 6px;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+.footer-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+  text-decoration-color: #ffffff;
+}
+
+.footer-social {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.footer-social a {
+  color: #e5e7eb;
+  font-size: 18px;
+  text-decoration: none;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.footer-social a:hover {
+  color: #60a5fa; /* light blue hover */
+  transform: translateY(-1px);
+}
+
+.footer-divider {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  height: 1px;
+  background-color: #111827;
+}
+
+.footer-bottom {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* around 1005px and below – reduce side padding */
+@media (max-width: 1005px) {
+  .site-footer {
+    padding: 28px 20px 20px;
+  }
+}
+
+/* smaller screens – stack columns */
+@media (max-width: 768px) {
+  .footer-columns {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .footer-column {
+    min-width: auto;
+  }
+}
+.footer-link-button {
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+}

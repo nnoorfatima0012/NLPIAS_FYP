@@ -1,0 +1,17 @@
+/* Just reuse the login styles for layout so everything matches */
+
+@import url('./Login.css');
+
+/* Extra overrides only if needed for signup */
+
+.terms-checkbox {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.terms-checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

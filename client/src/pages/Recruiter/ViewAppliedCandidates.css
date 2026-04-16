@@ -1,0 +1,323 @@
+/* Page container */
+.vac-container {
+  width: 100vw;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+.vac-heading {
+  margin-left: 5vw;
+  margin-bottom: 6px;
+}
+
+/* Alert */
+.vac-alert {
+  width: 90vw;               /* 90% width => 5% margin each side */
+  margin: 10px auto 16px auto;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  color: #1b5e20;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* Filter row */
+.vac-filter-row {
+  width: 90vw;               /* match table width */
+  margin: 12px auto 16px auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.vac-filter-label {
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.vac-filter-select {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+  min-width: 200px;
+  background: #ffffff;
+}
+
+.vac-filter-count {
+  margin-left: auto;
+  color: #64748b;
+}
+
+/* Table wrapper & table */
+.vac-table-wrap {
+  width: 90vw;                /* 90% width => 5% gap each side */
+  margin: 0 auto 24px auto;
+  overflow-x: auto;
+}
+
+.vac-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;  /* border around table */
+  font-size: 0.85rem;         /* smaller font inside table */
+}
+
+.vac-table thead tr {
+  background: #f9fafb;
+}
+
+.vac-table th,
+.vac-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.vac-table th {
+  font-weight: 600;
+  color: #4b5563;
+  font-size: 0.85rem;
+}
+
+.vac-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Links inside table */
+.vac-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.vac-link:hover {
+  text-decoration: underline;
+}
+
+/* Status text + confirmed date */
+.vac-status-text {
+  display: inline-block;
+  color: #111827;
+}
+
+.vac-confirmed-inline {
+  margin-top: 3px;
+  font-size: 0.8rem;
+  color: #15803d;
+  font-weight: 600;
+}
+
+/* Main Call for Interview button */
+.vac-btn-primary {
+  padding: 6px 11px;
+  border-radius: 8px;
+  border: 1px solid #2563eb;
+  background: #2563eb;       /* blue background */
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.vac-btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+/* Invited state: light green button */
+.vac-btn-invited {
+  background: #d1fae5;
+  border-color: #bbf7d0;
+  color: #065f46;
+  cursor: not-allowed;
+}
+
+/* Confirmed state: stronger green / disabled */
+.vac-btn-confirmed {
+  background: #bbf7d0;
+  border-color: #22c55e;
+  color: #065f46;
+  cursor: not-allowed;
+}
+
+/* Secondary button ("View (2)") – blue */
+.vac-btn-secondary {
+  padding: 5px 9px;
+  border-radius: 8px;
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.vac-btn-secondary:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+/* Empty state row */
+.vac-empty {
+  text-align: center;
+  padding: 12px 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+/* ===== INVITE MODAL ===== */
+.vac-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.vac-modal-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 22px 22px 20px 22px;
+  width: 420px;
+  max-width: 90vw;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.vac-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #6b7280;
+  line-height: 1;
+}
+
+.vac-modal-close:hover {
+  color: #111827;
+}
+
+.vac-modal-title {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.vac-modal-text {
+  color: #64748b;
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+}
+
+.vac-modal-field {
+  margin-bottom: 10px;
+}
+
+.vac-modal-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.vac-modal-input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+}
+
+.vac-modal-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;   /* center the button */
+}
+
+.vac-modal-primary-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #0ea5e9;
+  background: #0ea5e9;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.vac-modal-primary-btn:hover {
+  background: #0284c7;
+  border-color: #0284c7;
+}
+
+/* ===== SCREENING ANSWERS MODAL ===== */
+.vac-answers-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+}
+
+.vac-answers-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 25px 24px 20px 24px;
+  width: 550px;
+  max-width: 90vw;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+/* Cross (X) button in top-right */
+.vac-answers-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #6b7280;
+  line-height: 1;
+}
+
+.vac-answers-close:hover {
+  color: #111827;
+}
+
+/* Basic responsiveness */
+@media (max-width: 768px) {
+  .vac-filter-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .vac-filter-count {
+    margin-left: 0;
+  }
+
+  .vac-modal-card,
+  .vac-answers-card {
+    width: 92vw;
+  }
+}

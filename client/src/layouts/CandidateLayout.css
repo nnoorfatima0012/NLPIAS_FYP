@@ -1,0 +1,188 @@
+/* Candidate Layout Styles */
+.candidate-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff; /* keep background white */
+}
+
+.candidate-main {
+  flex: 1;
+  padding-top: 80px; /* Match navbar height */
+}
+
+/* Make candidate pages use full screen width */
+.candidate-content {
+  width: 100%;
+  margin: 0;
+  padding: 20px 32px;
+  box-sizing: border-box;
+}
+
+/* Navbar Styles */
+.candidate-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px; /* Navbar height */
+  background: #3b82f6; /* Main navbar blue */
+  border-bottom: 1px solid #2563eb;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+  z-index: 1000;
+  color: black;
+}
+
+.nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 32px; /* Wider padding */
+}
+
+/* Logo Section */
+.nav-logo {
+  width: 160px;          /* FIXED space for logo so layout never moves */
+  height: 100%;          /* takes full navbar height */
+  display: flex;
+  align-items: center;
+}
+
+.logo-img {
+  height: 210px !important;     /* Increase this as you want */
+  width: auto !important;
+  object-fit: contain;
+  display: block;
+}
+
+.logo-fallback {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Navigation Links */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.40rem;
+  padding: 0.40rem 0.8rem;
+  border-radius: 999px;
+  color: #eff6ff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.82rem;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+/* Hover: light blue on blue */
+.nav-link:hover {
+  background: #60a5fa;
+  color: #f9fafb;
+}
+
+/* Active: same as hover (no white pill) */
+.nav-link.active {
+  background: #60a5fa;
+  color: #f9fafb;
+}
+
+/* Icons follow text color, slightly smaller */
+.nav-icon {
+  font-size: 0.9rem;
+  color: inherit;
+}
+
+/* Profile Section */
+.nav-profile {
+  display: flex;
+  align-items: center;
+}
+
+.profile-trigger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 999px;
+  transition: background 0.2s ease;
+  outline: none;
+}
+
+.profile-trigger:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.profile-trigger:focus,
+.profile-trigger:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.profile-trigger-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.profile-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(15, 23, 42, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #eff6ff;
+  font-size: 0.9rem;
+}
+
+.profile-arrow {
+  font-size: 0.7rem;
+  color: #eff6ff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .nav-container {
+    padding: 0 16px;
+  }
+
+  .nav-links {
+    gap: 0.5rem;
+  }
+
+  .nav-link {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.72rem;
+  }
+
+  .nav-icon {
+    font-size: 0.8rem;
+  }
+
+  .profile-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  .nav-link span {
+    display: none;
+  }
+
+  .candidate-content {
+    padding: 15px;
+  }
+}

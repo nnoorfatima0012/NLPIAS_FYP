@@ -1,0 +1,228 @@
+.rd-container {
+  width: 90vw;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 0 32px 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  color: #0f172a;
+}
+
+/* Header */
+.rd-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 18px;
+}
+
+.rd-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.rd-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* Stats grid */
+.rd-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.rd-stat-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px 14px 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+.rd-stat-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rd-stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 2px;
+}
+
+.rd-stat-foot {
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
+/* Charts layout */
+.rd-charts-grid {
+  display: grid;
+  grid-template-columns: 2fr 2fr;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.rd-bottom-grid {
+  margin-top: 14px;
+}
+
+/* Cards */
+.rd-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px 14px 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+}
+
+.rd-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.rd-card-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.rd-card-subtitle {
+  margin: 2px 0 0 0;
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
+/* Chart wrapper */
+.rd-chart-card {
+  min-height: 220px;
+}
+
+.rd-chart-wrapper {
+  flex: 1;
+  min-height: 190px;
+}
+
+.rd-chart-wrapper-small {
+  min-height: 210px;
+}
+
+/* AI-style section (if re-used later) */
+.rd-ai-card {
+  min-height: 220px;
+}
+
+.rd-ai-metrics {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rd-ai-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: #0f172a;
+}
+
+.rd-ai-label {
+  color: #6b7280;
+}
+
+.rd-ai-value {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Progress blocks */
+.rd-ai-progress-block {
+  margin-top: 8px;
+}
+
+.rd-ai-progress-label {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.rd-ai-progress-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.rd-ai-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #22c55e;
+}
+
+.rd-ai-progress-fill-secondary {
+  background: #2563eb;
+}
+
+.rd-ai-progress-caption {
+  margin-top: 3px;
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
+/* Code-like text in subtitle */
+.rd-card-subtitle code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  background: #f3f4f6;
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-size: 0.7rem;
+}
+
+/* Responsiveness */
+@media (max-width: 1024px) {
+  .rd-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rd-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .rd-container {
+    width: 100vw;
+    padding: 16px 10px 24px;
+  }
+
+  .rd-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .rd-title {
+    font-size: 1.3rem;
+  }
+
+  .rd-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

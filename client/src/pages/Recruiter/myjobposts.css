@@ -1,0 +1,424 @@
+/* client/src/pages/Recruiter/myjobposts.css */
+
+.myjobs-container {
+  width: 100vw;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+.myjobs-container h2 {
+  margin-left: 5vw;
+  margin-bottom: 5px;
+}
+
+.myjobs-subtext {
+  margin-left: 5vw;
+  margin-bottom: 15px;
+  color: #64748b;
+}
+
+/* Search & filter row – 90% width => 5% gap each side */
+.myjobs-search-row {
+  display: flex;
+  gap: 10px;
+  width: 90vw;
+  margin: 0 auto 20px auto;
+}
+
+.myjobs-search-input {
+  flex-grow: 3;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.myjobs-sort-select {
+  width: 15%;
+  min-width: 120px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: #fff;
+}
+
+.myjobs-clear-btn {
+  width: 25%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+/* Cards wrapper – 90vw so cards line up with search row */
+.myjobs-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 90vw;
+  margin: 0 auto;
+}
+
+/* Single job card */
+.myjobs-card {
+  width: 100%;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12); /* darker shadow */
+}
+
+/* Left section */
+.myjobs-card-main {
+  flex-grow: 1;
+  max-width: 70%;
+}
+
+.myjobs-title {
+  font-weight: 800;
+  font-size: 18px;
+  color: #1f2937;
+}
+
+.myjobs-company {
+  color: #64748b;
+  margin-top: 2px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+/* Meta row: location, salary, deadline (smaller font) */
+.myjobs-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  white-space: nowrap;
+  font-size: 0.85rem; /* smaller */
+  color: #374151;
+  line-height: 1.4;
+  margin-top: 4px;
+  margin-bottom: 8px; /* small gap below meta block */
+}
+
+.myjobs-meta-item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.myjobs-icon {
+  font-size: 0.95rem;
+  color: #1f2937; /* same color as text */
+  margin-right: 5px;
+}
+
+/* Status + posted BLOCK under meta */
+.myjobs-bottom-wrap {
+  margin-top: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* little extra gap between status and posted */
+  align-items: flex-start;
+}
+
+/* Status pill */
+.myjobs-status {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  border: 1px solid transparent;
+}
+
+.myjobs-status-open {
+  background: #eaf5ff;
+  color: #0b66c3;
+  border-color: #c6e2ff;
+}
+
+.myjobs-status-closed {
+  background: #ffe4e8;
+  color: #c2273d;
+  border-color: #ffd0d6;
+}
+
+/* Posted line */
+.myjobs-posted {
+  font-size: 0.85rem; /* smaller font */
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Right section: action buttons */
+.myjobs-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.myjobs-btn-primary {
+  padding: 6px 11px;
+  border-radius: 8px;
+  border: 1px solid #2563eb;
+  background: #2563eb; /* blue background */
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.85rem; /* smaller font size */
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.myjobs-btn-primary:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.myjobs-btn-secondary {
+  /* same style, ready for tweak later */
+}
+
+/* Empty state */
+.myjobs-empty {
+  margin-top: 10px;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+/* DETAIL CARD MODAL STYLES */
+.jobdetail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5); /* dark overlay */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 80px 0 40px 0;   /* gap from navbar + bottom padding */
+  z-index: 50;
+  overflow-y: auto;          /* <<< ALLOW SCROLL WHEN CONTENT IS TALL */
+}
+
+.jobdetail-card {
+  width: 90vw;              /* same feel as list cards */
+  max-width: 900px;
+  background: #ffffff;
+  border-radius: 18px;      /* bit round */
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+  padding: 22px 24px 24px 24px;
+  position: relative;
+  color: #1f2937;           /* soft black */
+
+  /* IMPORTANT: let card scroll inside viewport */
+  max-height: calc(100vh - 140px);  /* viewport height minus top/bottom gap */
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* Close (X) */
+.jobdetail-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.jobdetail-close:hover {
+  color: #111827;
+}
+
+.jobdetail-title {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.jobdetail-company {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+/* Meta rows inside detail card */
+.jobdetail-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 14px;
+  row-gap: 6px;               /* vertical breathing space */
+  font-size: 0.9rem;
+  color: #374151;
+  margin-bottom: 10px;        /* decent gap below row */
+}
+
+.jobdetail-meta-row--second {
+  margin-top: 8px;            /* space between first & second row */
+  margin-bottom: 12px;        /* space before posted / next block */
+}
+
+.jobdetail-meta-item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.jobdetail-icon {
+  font-size: 0.9rem;
+  color: #1f2937;
+  margin-right: 6px;
+}
+
+/* Status badge inside detail card */
+.jobdetail-status {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.jobdetail-status-open {
+  background: #eaf5ff;
+  color: #0b66c3;
+  border-color: #c6e2ff;
+}
+
+.jobdetail-status-closed {
+  background: #ffe4e8;
+  color: #c2273d;
+  border-color: #ffd0d6;
+}
+
+/* Posted line inside detail */
+.jobdetail-posted {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 4px;
+}
+
+/* Sections: Description, Skills */
+.jobdetail-section {
+  margin-top: 18px;
+}
+
+.jobdetail-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+.jobdetail-desc {
+  background: #ffffff; /* white background for description */
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: #1f2937; /* not too much black, but readable */
+
+  /* REMOVE height limit so full text fits inside scrollable card */
+  max-height: none;
+  overflow-y: visible;
+}
+
+/* Skills pills */
+.jobdetail-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.jobdetail-skill-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #e5f0ff;
+  color: #1d4ed8;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Bottom actions: Edit (blue), Delete (red) */
+.jobdetail-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.jobdetail-btn {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.jobdetail-btn-edit {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.jobdetail-btn-edit:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.jobdetail-btn-delete {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.jobdetail-btn-delete:hover {
+  background: #fecaca;
+}
+
+/* Basic responsiveness */
+@media (max-width: 768px) {
+  .myjobs-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .myjobs-card-main {
+    max-width: 100%;
+  }
+
+  .myjobs-actions {
+    width: 100%;
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+
+  .myjobs-sort-select,
+  .myjobs-clear-btn {
+    width: auto;
+  }
+
+  .jobdetail-card {
+    width: 92vw;
+    padding: 18px 16px 20px 16px;
+    max-height: calc(100vh - 120px);
+  }
+}

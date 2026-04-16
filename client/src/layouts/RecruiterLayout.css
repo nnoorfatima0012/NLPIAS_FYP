@@ -1,0 +1,192 @@
+/* src/layouts/RecruiterLayout.css */
+
+/* Recruiter Layout Styles */
+.recruiter-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff; /* keep background white */
+}
+
+.recruiter-main {
+  flex: 1;
+  padding-top: 80px; /* Match navbar height */
+}
+
+/* Make recruiter pages use full screen width */
+.recruiter-content {
+  width: 100%;
+  margin: 0;
+  padding: 20px 32px;
+  box-sizing: border-box;
+}
+
+/* =========================
+   Recruiter Navbar Styles
+   ========================= */
+.recruiter-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: #3b82f6;
+  border-bottom: 1px solid #2563eb;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+  z-index: 1000;
+}
+
+/* Container */
+.recruiter-navbar .nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+/* =========================
+   UPDATED LOGO SECTION
+   ========================= */
+.recruiter-navbar .nav-logo {
+  width: 160px;      /* FIXED width so logo never pushes other items */
+  height: 100%;      /* fill navbar height */
+  display: flex;
+  align-items: center;
+  background: transparent;
+}
+
+.recruiter-navbar .logo-img {
+  height: 210px !important; /* YOUR REQUIRED BIGGER LOGO */
+  width: auto !important;
+  object-fit: contain;
+  display: block;
+}
+
+.recruiter-navbar .logo-fallback {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Navigation Links */
+.recruiter-navbar .nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.recruiter-navbar .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.40rem 0.8rem;
+  border-radius: 999px;
+  color: #eff6ff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.82rem;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.recruiter-navbar .nav-link:hover {
+  background: #60a5fa;
+  color: #f9fafb;
+}
+
+.recruiter-navbar .nav-link.active {
+  background: #60a5fa;
+  color: #f9fafb;
+}
+
+.recruiter-navbar .nav-icon {
+  font-size: 0.9rem;
+  color: inherit;
+}
+
+/* Profile Section */
+.recruiter-navbar .nav-profile {
+  display: flex;
+  align-items: center;
+}
+
+.recruiter-navbar .profile-trigger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 999px;
+  transition: background 0.2s ease;
+  outline: none;
+}
+
+.recruiter-navbar .profile-trigger:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.recruiter-navbar .profile-trigger:focus,
+.recruiter-navbar .profile-trigger:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.recruiter-navbar .profile-trigger-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.recruiter-navbar .profile-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(15, 23, 42, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #eff6ff;
+  font-size: 0.9rem;
+}
+
+.recruiter-navbar .profile-arrow {
+  font-size: 0.7rem;
+  color: #eff6ff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .recruiter-navbar .nav-container {
+    padding: 0 16px;
+  }
+
+  .recruiter-navbar .nav-links {
+    gap: 0.5rem;
+  }
+
+  .recruiter-navbar .nav-link {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.72rem;
+  }
+
+  .recruiter-navbar .nav-icon {
+    font-size: 0.8rem;
+  }
+
+  .recruiter-navbar .profile-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  .recruiter-navbar .nav-link span {
+    display: none;
+  }
+
+  .recruiter-content {
+    padding: 15px;
+  }
+}

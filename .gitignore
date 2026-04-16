@@ -1,0 +1,22 @@
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# Environment
+.env
+
+# Build
+dist/
+build/
+
+# Uploads (IMPORTANT)
+server/uploads/
+
+# OS
+.DS_Store
+Thumbs.db

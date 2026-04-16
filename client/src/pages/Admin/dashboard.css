@@ -1,0 +1,409 @@
+/* src/pages/Admin/dashboard.css */
+
+/* GLOBAL SCROLLBAR – thin, light grey */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 6px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 9999px;
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+/* Page background + global typography */
+.admin-dashboard {
+  min-height: 100vh;
+  padding: 24px;
+  background-color: #f5f7fb; /* Very light grey/blue like the design */
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: #111827;
+}
+
+/* Title row */
+.admin-dashboard-top {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+
+.admin-dashboard-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Search bar row (below title, 90% width centered) */
+.admin-search-bar-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.admin-search-wrapper {
+  width: 90%;               /* 5% margin from both sides */
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 9999px;
+  border: 1px solid #e5e7eb;
+  padding: 8px 14px;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.04);
+}
+
+.admin-search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  color: #9ca3af;
+}
+
+.admin-search-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.admin-search-input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+  color: #111827;
+  font-family: inherit;
+}
+
+.admin-search-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Tabs row */
+.tabs-container {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  margin: 0 auto 16px;
+  width: 90%;              /* align with search bar */
+  overflow-x: auto;
+}
+
+/* Scrollbar for tab row */
+.tabs-container::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tabs-container::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 9999px;
+}
+
+.tabs-container {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+.tab-button {
+  position: relative;
+  background: transparent;
+  border: none;
+  padding: 12px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280; /* inactive text */
+  white-space: nowrap;
+}
+
+/* remove focus outline / black box */
+.tab-button:focus,
+.tab-button:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.tab-button-active {
+  color: #2563eb; /* active text blue */
+}
+
+.tab-button-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 100%;
+  height: 2px;
+  background-color: #2563eb;
+  border-radius: 9999px;
+}
+
+/* Tab badges */
+.tab-badge {
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.tab-badge-active {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.tab-badge-inactive {
+  background-color: #e5e7eb;
+  color: #6b7280;
+}
+
+/* Section wrapper (current tab) – 90% width, centered */
+.admin-section {
+  margin-top: 16px;
+  margin-bottom: 32px;
+}
+
+/* Card around each table – 90% width, less rounded (more rectangular) */
+.table-card {
+  background-color: #ffffff;
+  border-radius: 8px;      /* less circular */
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 15px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  width: 90%;              /* 5% margin each side */
+  margin: 0 auto;
+}
+
+/* BLUE HEADER ON EACH CARD */
+.admin-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background-color: #2563eb;
+  border-radius: 8px 8px 0 0;
+}
+
+.admin-section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.admin-section-count {
+  font-size: 13px;
+  color: #e5e7eb;
+}
+
+/* Scroll wrappers – ONLY horizontal scroll, no vertical scroll */
+.table-wrapper {
+  overflow-x: auto;
+  overflow-y: visible;    /* remove inner vertical scrollbar */
+}
+
+/* Scrollbar for table wrapper */
+.table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 9999px;
+}
+
+.table-wrapper {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+/* Core table styling */
+.recruiters-table {
+  width: 100%;
+  min-width: 1000px;
+  border-collapse: collapse;
+}
+
+/* Header row */
+.recruiters-table thead th {
+  background-color: #f9fafb;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Data rows */
+.recruiters-table tbody td {
+  padding: 16px;
+  font-size: 13px;
+  color: #4b5563;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
+  background-color: #ffffff;
+}
+
+/* Company name style */
+.company-name-cell {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
+
+/* Generic text cell */
+.cell-text {
+  font-size: 13px;
+  color: #4b5563;
+}
+
+/* Address / description cells */
+.address-cell {
+  white-space: pre-line;
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.4;
+}
+
+.description-cell {
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.4;
+}
+
+/* Link style for website column */
+.website-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.website-link:hover {
+  text-decoration: underline;
+}
+
+/* Row variants */
+.recruiter-row-declined td {
+  background-color: #fef2f2; /* soft red tint */
+}
+
+/* Empty state row */
+.empty-row {
+  text-align: center;
+  padding: 24px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Actions cell */
+.actions-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Buttons */
+.btn {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  border-radius: 9999px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* Approve = blue */
+.btn-approve {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn-approve:hover {
+  background-color: #1d4ed8;
+}
+
+/* Decline = red */
+.btn-decline {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.btn-decline:hover {
+  background-color: #dc2626;
+}
+
+/* Submit (for declined with reason) */
+.btn-submit {
+  background-color: #7f1d1d;
+  color: #ffffff;
+}
+
+.btn-submit:hover {
+  background-color: #6b1414;
+}
+
+/* Comment textarea */
+.comment-cell {
+  min-width: 220px;
+}
+
+.comment-textarea {
+  width: 100%;
+  min-height: 80px;
+  border-radius: 8px;   /* match less-rounded card */
+  border: 1px solid #e5e7eb;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #111827;
+  resize: vertical;
+}
+
+.comment-textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.15);
+}
+
+.comment-textarea-disabled {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Small-screen tweaks */
+@media (max-width: 768px) {
+  .admin-dashboard {
+    padding: 16px;
+  }
+
+  .admin-dashboard-title {
+    font-size: 22px;
+  }
+
+  .tabs-container {
+    gap: 16px;
+  }
+
+  .recruiters-table {
+    min-width: 800px;
+  }
+}
