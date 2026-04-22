@@ -1,8 +1,16 @@
-//server/controllers/applicationController.js
+// //server/controllers/applicationController.js
+// const Application = require('../models/Application');
+// const Job = require('../models/Job');
+// const ProcessedResume = require('../models/ProcessedResume');
+// const { computeJobResumeMatch } = require('../utils/nlpMatchClient');
+// const mongoose = require('mongoose');
+// const fs = require('fs');
+// const path = require('path');
+// const Resume = require('../models/Resume');
 const Application = require('../models/Application');
 const Job = require('../models/Job');
 const ProcessedResume = require('../models/ProcessedResume');
-const { computeJobResumeMatch } = require('../utils/nlpMatchClient');
+const { applicationQueue } = require('../queue/applicationQueue');
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
@@ -40,7 +48,159 @@ function ensureReschedule(appDoc) {
   }
 }
 
-// POST /api/applications
+// // POST /api/applications
+// exports.create = async (req, res) => {
+//   try {
+//     const candidateId = req.user?.id || req.user?._id;
+//     const {
+//       jobId,
+//       resumeSource,
+//       resumeFileId,
+//       resumeName,
+//       screeningAnswers,
+//     } = req.body;
+
+//     if (!candidateId) return res.status(401).json({ message: 'Unauthorized' });
+//     if (!jobId) return res.status(400).json({ message: 'jobId is required' });
+
+//     const job = await Job.findById(jobId).select(
+//       'isClosed applicationDeadline title createdBy customQuestions screeningQuestions' +
+//       'description skillsRequired rateSkills experience qualification location careerLevel'
+//     );
+//     if (!job) return res.status(404).json({ message: 'Job not found' });
+
+//     const now = new Date();
+//     if (job.isClosed === true)
+//       return res.status(400).json({ message: 'This job is closed' });
+//     if (job.applicationDeadline && new Date(job.applicationDeadline) < now) {
+//       return res
+//         .status(400)
+//         .json({ message: 'Application deadline has passed' });
+//     }
+
+//     const exists = await Application.findOne({
+//       candidate: candidateId,
+//       job: jobId,
+//     });
+//     if (exists)
+//       return res
+//         .status(409)
+//         .json({ message: 'You already applied to this job' });
+
+//     // --- Validate screening answers ---
+//     if (
+//       job.customQuestions &&
+//       Array.isArray(job.screeningQuestions) &&
+//       job.screeningQuestions.length > 0
+//     ) {
+//       if (
+//         !Array.isArray(screeningAnswers) ||
+//         screeningAnswers.length !== job.screeningQuestions.length
+//       ) {
+//         return res.status(400).json({
+//           message: `This job requires ${job.screeningQuestions.length} screening answers.`,
+//         });
+//       }
+//       const allAnswered = screeningAnswers.every(
+//         (a) => typeof a === 'string' && a.trim().length > 0
+//       );
+//       if (!allAnswered) {
+//         return res
+//           .status(400)
+//           .json({ message: 'All screening questions must be answered.' });
+//       }
+//     } else if (Array.isArray(screeningAnswers) && screeningAnswers.length > 0) {
+//       screeningAnswers.length = 0;
+//     }
+
+//     // ----------------- Resolve ProcessedResume for matching -----------------
+//     let processedResume = null;
+//     const rSource = resumeSource || 'default';
+
+//     if (rSource === 'upload' && resumeFileId) {
+//       processedResume = await ProcessedResume.findOne({
+//         userId: candidateId,
+//         sourceType: 'uploaded_pdf',
+//         uploadedFileId: resumeFileId,
+//       }).lean();
+//     } else {
+//       processedResume = await ProcessedResume.findOne({
+//         userId: candidateId,
+//         sourceType: 'builder_form',
+//       })
+//         .sort({ createdAt: -1 })
+//         .lean();
+//     }
+
+//     let matchPayload = {
+//       matchScore: null,
+//       semanticScore: null,
+//       ruleScore: null,
+//       similarity: null,
+//       matchBreakdown: null,
+//     };
+
+//     if (processedResume) {
+//       try {
+//         const matchResult = await computeJobResumeMatch(
+//           job.toObject ? job.toObject() : job,
+//           processedResume
+//         );
+
+//         matchPayload = {
+//           matchScore: matchResult.final_score,
+//           semanticScore: matchResult.semantic_score,
+//           ruleScore: matchResult.rule_score,
+//           similarity: matchResult.similarity,
+//           matchBreakdown: matchResult.breakdown,
+//         };
+//       } catch (e) {
+//         console.error(
+//           'Error computing job-resume match:',
+//           e?.response?.data || e.message || e
+//         );
+//       }
+//     } else {
+//       console.warn('No ProcessedResume found at apply time', {
+//         candidateId,
+//         resumeSource: rSource,
+//         resumeFileId,
+//       });
+//     }
+
+//     const appDoc = await Application.create({
+//       candidate: candidateId,
+//       job: jobId,
+//       resumeSource: rSource,
+//       resumeFileId: resumeFileId || null,
+
+//       resumeName:
+//         resumeName ||
+//         (rSource === 'default' ? 'Resume (Built in Builder)' : null),
+//       resumePath:
+        
+//         rSource === 'default' ? `/api/resume/me/pdf` : null,
+//       screeningAnswers: Array.isArray(screeningAnswers)
+//         ? screeningAnswers
+//         : [],
+
+//       matchScore: matchPayload.matchScore,
+//       semanticScore: matchPayload.semanticScore,
+//       ruleScore: matchPayload.ruleScore,
+//       similarity: matchPayload.similarity,
+//       matchBreakdown: matchPayload.matchBreakdown,
+//     });
+
+//     return res.status(201).json(appDoc);
+//   } catch (err) {
+//     console.error('create application error:', err);
+//     return res.status(500).json({ message: 'Server error' });
+//   }
+// };
+
+
+
+
 exports.create = async (req, res) => {
   try {
     const candidateId = req.user?.id || req.user?._id;
@@ -56,8 +216,7 @@ exports.create = async (req, res) => {
     if (!jobId) return res.status(400).json({ message: 'jobId is required' });
 
     const job = await Job.findById(jobId).select(
-      'isClosed applicationDeadline title createdBy customQuestions screeningQuestions' +
-      'description skillsRequired rateSkills experience qualification location careerLevel'
+      'isClosed applicationDeadline title createdBy customQuestions screeningQuestions'
     );
     if (!job) return res.status(404).json({ message: 'Job not found' });
 
@@ -79,7 +238,6 @@ exports.create = async (req, res) => {
         .status(409)
         .json({ message: 'You already applied to this job' });
 
-    // --- Validate screening answers ---
     if (
       job.customQuestions &&
       Array.isArray(job.screeningQuestions) &&
@@ -101,87 +259,41 @@ exports.create = async (req, res) => {
           .status(400)
           .json({ message: 'All screening questions must be answered.' });
       }
-    } else if (Array.isArray(screeningAnswers) && screeningAnswers.length > 0) {
-      screeningAnswers.length = 0;
     }
 
-    // ----------------- Resolve ProcessedResume for matching -----------------
-    let processedResume = null;
     const rSource = resumeSource || 'default';
-
-    if (rSource === 'upload' && resumeFileId) {
-      processedResume = await ProcessedResume.findOne({
-        userId: candidateId,
-        sourceType: 'uploaded_pdf',
-        uploadedFileId: resumeFileId,
-      }).lean();
-    } else {
-      processedResume = await ProcessedResume.findOne({
-        userId: candidateId,
-        sourceType: 'builder_form',
-      })
-        .sort({ createdAt: -1 })
-        .lean();
-    }
-
-    let matchPayload = {
-      matchScore: null,
-      semanticScore: null,
-      ruleScore: null,
-      similarity: null,
-      matchBreakdown: null,
-    };
-
-    if (processedResume) {
-      try {
-        const matchResult = await computeJobResumeMatch(
-          job.toObject ? job.toObject() : job,
-          processedResume
-        );
-
-        matchPayload = {
-          matchScore: matchResult.final_score,
-          semanticScore: matchResult.semantic_score,
-          ruleScore: matchResult.rule_score,
-          similarity: matchResult.similarity,
-          matchBreakdown: matchResult.breakdown,
-        };
-      } catch (e) {
-        console.error(
-          'Error computing job-resume match:',
-          e?.response?.data || e.message || e
-        );
-      }
-    } else {
-      console.warn('No ProcessedResume found at apply time', {
-        candidateId,
-        resumeSource: rSource,
-        resumeFileId,
-      });
-    }
 
     const appDoc = await Application.create({
       candidate: candidateId,
       job: jobId,
       resumeSource: rSource,
       resumeFileId: resumeFileId || null,
-
       resumeName:
         resumeName ||
         (rSource === 'default' ? 'Resume (Built in Builder)' : null),
-      resumePath:
-        
-        rSource === 'default' ? `/api/resume/me/pdf` : null,
+      resumePath: rSource === 'default' ? `/api/resume/me/pdf` : null,
       screeningAnswers: Array.isArray(screeningAnswers)
         ? screeningAnswers
         : [],
-
-      matchScore: matchPayload.matchScore,
-      semanticScore: matchPayload.semanticScore,
-      ruleScore: matchPayload.ruleScore,
-      similarity: matchPayload.similarity,
-      matchBreakdown: matchPayload.matchBreakdown,
+      matchScore: null,
+      semanticScore: null,
+      ruleScore: null,
+      similarity: null,
+      matchBreakdown: null,
+      matchingStatus: 'pending',
+      matchingStartedAt: new Date(),
     });
+
+    const queueJob = await applicationQueue.add("application_match_process", {
+      applicationId: String(appDoc._id),
+      candidateId: String(candidateId),
+      jobId: String(jobId),
+      resumeSource: rSource,
+      resumeFileId: resumeFileId ? String(resumeFileId) : null,
+    });
+
+    appDoc.matchingJobId = String(queueJob.id);
+    await appDoc.save();
 
     return res.status(201).json(appDoc);
   } catch (err) {
@@ -871,5 +983,50 @@ exports.mineForJob = async (req, res) => {
   } catch (err) {
     console.error('mineForJob error:', err);
     return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.getMatchingStatus = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.user?._id;
+    const { appId } = req.params;
+
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    if (!mongoose.Types.ObjectId.isValid(appId)) {
+      return res.status(400).json({ message: "Invalid application id" });
+    }
+
+    const appDoc = await Application.findById(appId)
+      .select(
+        "candidate job matchingStatus matchingStartedAt matchingCompletedAt matchingError matchingJobId matchScore semanticScore ruleScore similarity matchBreakdown"
+      )
+      .populate("job", "createdBy");
+
+    if (!appDoc) return res.status(404).json({ message: "Application not found" });
+
+    const isCandidate = String(appDoc.candidate) === String(userId);
+    const isRecruiterOwner =
+      String(appDoc.job?.createdBy) === String(userId);
+    const isAdmin = req.user?.role === "admin";
+
+    if (!isCandidate && !isRecruiterOwner && !isAdmin) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    return res.json({
+      matchingStatus: appDoc.matchingStatus,
+      matchingStartedAt: appDoc.matchingStartedAt,
+      matchingCompletedAt: appDoc.matchingCompletedAt,
+      matchingError: appDoc.matchingError,
+      matchingJobId: appDoc.matchingJobId,
+      matchScore: appDoc.matchScore,
+      semanticScore: appDoc.semanticScore,
+      ruleScore: appDoc.ruleScore,
+      similarity: appDoc.similarity,
+      matchBreakdown: appDoc.matchBreakdown,
+    });
+  } catch (err) {
+    console.error("getMatchingStatus error:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 };

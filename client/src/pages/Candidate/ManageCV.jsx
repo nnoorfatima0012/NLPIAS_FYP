@@ -147,15 +147,55 @@ const ManageCV = () => {
   //   formData.append("resume", file);
 
   //   try {
+  //     setIsUploading(true);
+  //     setUploadMessage("⏳ Uploading and processing your resume...");
+
   //     const { data } = await uploadResumeFile(formData);
+
   //     setUploadMessage(`✅ ${data.message} (${data.file.originalName})`);
   //     setUploadedFiles((prev) => [...prev, data.file]);
-  //   } catch {
-  //     setUploadMessage("❌ Failed to upload resume.");
+  //   } catch (err) {
+  //     console.error("❌ Upload failed:", err);
+  //     setUploadMessage("❌ Failed to upload and process resume.");
   //   } finally {
+  //     setIsUploading(false);
   //     e.target.value = "";
   //   }
   // };
+
+  const pollUploadedResumeStatus = async (fileId) => {
+    const maxAttempts = 60;
+    let attempts = 0;
+
+    const interval = setInterval(async () => {
+      attempts += 1;
+      try {
+        const res = await api.get(
+          `/resume/me/upload/${fileId}/processing-status`,
+        );
+        const status = res.data?.status;
+
+        if (status === "completed") {
+          clearInterval(interval);
+          setUploadMessage("✅ Resume uploaded and processed successfully.");
+        } else if (status === "failed") {
+          clearInterval(interval);
+          setUploadMessage(
+            `❌ Resume processing failed: ${res.data?.error || "Unknown error"}`,
+          );
+        } else {
+          setUploadMessage("⏳ Uploading and processing your resume...");
+        }
+
+        if (attempts >= maxAttempts) {
+          clearInterval(interval);
+        }
+      } catch (err) {
+        console.error("Polling uploaded resume status failed:", err);
+        clearInterval(interval);
+      }
+    }, 3000);
+  };
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -170,8 +210,13 @@ const ManageCV = () => {
 
       const { data } = await uploadResumeFile(formData);
 
-      setUploadMessage(`✅ ${data.message} (${data.file.originalName})`);
       setUploadedFiles((prev) => [...prev, data.file]);
+
+      if (data?.file?._id) {
+        pollUploadedResumeStatus(data.file._id);
+      } else {
+        setUploadMessage(`✅ ${data.message} (${data.file.originalName})`);
+      }
     } catch (err) {
       console.error("❌ Upload failed:", err);
       setUploadMessage("❌ Failed to upload and process resume.");
@@ -213,58 +258,143 @@ const ManageCV = () => {
     }
   };
 
-  const handleChoose = async (source) => {
-    if (!jobId) {
-      setApplyMsg("❌ No job selected.");
+  // const handleChoose = async (source) => {
+  //   if (!jobId) {
+  //     setApplyMsg("❌ No job selected.");
+  //     return;
+  //   }
+
+  //   try {
+  //     const payload = {
+  //       jobId,
+  //       screeningAnswers: Array.isArray(screeningAnswers)
+  //         ? screeningAnswers
+  //         : [],
+  //     };
+
+  //     if (source?.type === "default") {
+  //       payload.resumeSource = "default";
+  //       payload.resumeName = "Resume (Built in Builder)";
+  //     } else if (source?.type === "upload" && source.file) {
+  //       payload.resumeSource = "upload";
+  //       payload.resumeFileId = source.file._id;
+  //       payload.resumeName = source.file.originalName;
+  //     }
+
+  //     await applicationApi.create(payload);
+
+  //     setApplyMsg("✅ Your application has been sent to the recruiter");
+
+  //     setTimeout(() => {
+  //       navigate("/candidate/applied-jobs");
+  //     }, 600);
+  //   } catch (e) {
+  //     if (e?.message === "NO_TOKEN") {
+  //       setApplyMsg("❌ Please sign in to apply.");
+  //       return;
+  //     }
+  //     if (e?.message === "NO_APPLY_ENDPOINT") {
+  //       console.error("Apply endpoint not found. Tried:", e.details);
+  //       setApplyMsg(
+  //         "❌ Apply endpoint not found on the server (check routes).",
+  //       );
+  //       return;
+  //     }
+  //     const status = e?.response?.status;
+  //     const msg =
+  //       e?.response?.data?.errors?.join(", ") ||
+  //       e?.response?.data?.message ||
+  //       e?.response?.data?.error;
+  //     setApplyMsg(
+  //       `❌ ${msg || `Failed to apply${status ? ` (HTTP ${status})` : ""}.`}`,
+  //     );
+  //   }
+  // };
+
+  const pollApplicationMatching = async (appId) => {
+  const maxAttempts = 60;
+  let attempts = 0;
+
+  const interval = setInterval(async () => {
+    attempts += 1;
+    try {
+      const res = await api.get(`/applications/${appId}/matching-status`);
+      const status = res.data?.matchingStatus;
+
+      if (status === "completed") {
+        clearInterval(interval);
+        setApplyMsg("✅ Application submitted and match analysis completed.");
+      } else if (status === "failed") {
+        clearInterval(interval);
+        setApplyMsg("✅ Application submitted, but match analysis failed.");
+      } else {
+        setApplyMsg("⏳ Application submitted. Match analysis is running...");
+      }
+
+      if (attempts >= maxAttempts) {
+        clearInterval(interval);
+      }
+    } catch (err) {
+      console.error("Matching poll failed:", err);
+      clearInterval(interval);
+    }
+  }, 3000);
+};
+
+const handleChoose = async (source) => {
+  if (!jobId) {
+    setApplyMsg("❌ No job selected.");
+    return;
+  }
+
+  try {
+    const payload = {
+      jobId,
+      screeningAnswers: Array.isArray(screeningAnswers)
+        ? screeningAnswers
+        : [],
+    };
+
+    if (source?.type === "default") {
+      payload.resumeSource = "default";
+      payload.resumeName = "Resume (Built in Builder)";
+    } else if (source?.type === "upload" && source.file) {
+      payload.resumeSource = "upload";
+      payload.resumeFileId = source.file._id;
+      payload.resumeName = source.file.originalName;
+    }
+
+    const res = await applicationApi.create(payload);
+
+    setApplyMsg("⏳ Your application has been sent. Match analysis is running...");
+
+    if (res?.data?._id) {
+      pollApplicationMatching(res.data._id);
+    }
+
+    setTimeout(() => {
+      navigate("/candidate/applied-jobs");
+    }, 1500);
+  } catch (e) {
+    if (e?.message === "NO_TOKEN") {
+      setApplyMsg("❌ Please sign in to apply.");
       return;
     }
-
-    try {
-      const payload = {
-        jobId,
-        screeningAnswers: Array.isArray(screeningAnswers)
-          ? screeningAnswers
-          : [],
-      };
-
-      if (source?.type === "default") {
-        payload.resumeSource = "default";
-        payload.resumeName = "Resume (Built in Builder)";
-      } else if (source?.type === "upload" && source.file) {
-        payload.resumeSource = "upload";
-        payload.resumeFileId = source.file._id;
-        payload.resumeName = source.file.originalName;
-      }
-
-      await applicationApi.create(payload);
-
-      setApplyMsg("✅ Your application has been sent to the recruiter");
-
-      setTimeout(() => {
-        navigate("/candidate/applied-jobs");
-      }, 600);
-    } catch (e) {
-      if (e?.message === "NO_TOKEN") {
-        setApplyMsg("❌ Please sign in to apply.");
-        return;
-      }
-      if (e?.message === "NO_APPLY_ENDPOINT") {
-        console.error("Apply endpoint not found. Tried:", e.details);
-        setApplyMsg(
-          "❌ Apply endpoint not found on the server (check routes).",
-        );
-        return;
-      }
-      const status = e?.response?.status;
-      const msg =
-        e?.response?.data?.errors?.join(", ") ||
-        e?.response?.data?.message ||
-        e?.response?.data?.error;
-      setApplyMsg(
-        `❌ ${msg || `Failed to apply${status ? ` (HTTP ${status})` : ""}.`}`,
-      );
+    if (e?.message === "NO_APPLY_ENDPOINT") {
+      console.error("Apply endpoint not found. Tried:", e.details);
+      setApplyMsg("❌ Apply endpoint not found on the server (check routes).");
+      return;
     }
-  };
+    const status = e?.response?.status;
+    const msg =
+      e?.response?.data?.errors?.join(", ") ||
+      e?.response?.data?.message ||
+      e?.response?.data?.error;
+    setApplyMsg(
+      `❌ ${msg || `Failed to apply${status ? ` (HTTP ${status})` : ""}.`}`,
+    );
+  }
+};
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
 

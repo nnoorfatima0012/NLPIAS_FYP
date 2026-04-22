@@ -32,6 +32,7 @@ function stopSpeaking() {
   if (window.speechSynthesis) window.speechSynthesis.cancel();
 }
 
+
 // ── Check browser support ──
 const hasSpeechSynthesis = typeof window !== "undefined" && !!window.speechSynthesis;
 const hasSpeechRecognition =
@@ -60,6 +61,8 @@ export default function Interview() {
   const pasteRef = useRef(0);
   const hiddenMsRef = useRef(0);
   const hiddenAtRef = useRef(null);
+
+  
 
   const resetSignals = () => {
     startAtRef.current = Date.now();
@@ -92,6 +95,125 @@ export default function Interview() {
   const recordingStartRef = useRef(null);
   const speechRecogRef = useRef(null);     // NEW: SpeechRecognition instance
   const liveTranscriptRef = useRef("");    // NEW: accumulates live text across recognition restarts
+  const generationPollRef = useRef(null);
+  const answerPollRef = useRef(null);
+  const hasStartedRef = useRef(false);
+
+
+    const pollInterviewGeneration = (appId) => {
+    const maxAttempts = 60;
+    let attempts = 0;
+
+    generationPollRef.current = setInterval(async () => {
+      attempts += 1;
+
+      try {
+        const res = await api.get(`/interview/${appId}/status`);
+        const data = res.data;
+        const generationStatus = data?.generationStatus;
+
+        if (generationStatus === "completed") {
+          clearInterval(generationPollRef.current);
+          generationPollRef.current = null;
+
+          const allQuestions = data.questions || [];
+          const existingAnswers = data.answers || [];
+          const doneIds = new Set(
+            existingAnswers.map((a) => Number(a.questionId))
+          );
+
+          setInterviewId(data.interviewId);
+          setAnsweredIds(doneIds);
+          setQuestions(allQuestions);
+
+          const firstUnanswered = allQuestions.findIndex(
+            (q) => !doneIds.has(Number(q.questionId))
+          );
+
+          setIdx(firstUnanswered === -1 ? 0 : firstUnanswered);
+          setAnswerText("");
+          setFeedback(null);
+          setFinalResult(null);
+          resetSignals();
+          setLoading(false);
+          return;
+        }
+
+        if (generationStatus === "failed") {
+          clearInterval(generationPollRef.current);
+          generationPollRef.current = null;
+          setLoading(false);
+          alert("Interview question generation failed.");
+          return;
+        }
+
+        if (attempts >= maxAttempts) {
+          clearInterval(generationPollRef.current);
+          generationPollRef.current = null;
+          setLoading(false);
+          alert("Interview generation is taking too long. Please refresh.");
+        }
+      } catch (err) {
+        console.error("Interview generation poll failed:", err);
+        clearInterval(generationPollRef.current);
+        generationPollRef.current = null;
+        setLoading(false);
+        alert("Failed to check interview generation status.");
+      }
+    }, 3000);
+  };
+
+    const pollAnswerEvaluation = (interviewId, questionId) => {
+    const maxAttempts = 60;
+    let attempts = 0;
+
+    answerPollRef.current = setInterval(async () => {
+      attempts += 1;
+
+      try {
+        const res = await api.get(
+          `/interview/${interviewId}/answer-status/${questionId}`
+        );
+        const status = res.data?.status;
+
+        if (status === "completed") {
+          clearInterval(answerPollRef.current);
+          answerPollRef.current = null;
+          setFeedback({
+            score: res.data.score,
+            feedback: res.data.feedback,
+            grading: res.data.grading || {},
+            aiAnalysis: res.data.aiAnalysis || {},
+            cheatingRisk: res.data.cheatingRisk || 0,
+          });
+
+          setAnsweredIds(
+            (prev) => new Set([...prev, Number(questionId)])
+          );
+          return;
+        }
+
+        if (status === "failed") {
+          clearInterval(answerPollRef.current);
+          answerPollRef.current = null;
+          alert(res.data?.error || "Answer evaluation failed.");
+          return;
+        }
+
+        if (attempts >= maxAttempts) {
+          clearInterval(answerPollRef.current);
+          answerPollRef.current = null;
+          alert("Answer evaluation is taking too long.");
+        }
+      } catch (err) {
+        console.error("Answer evaluation poll failed:", err);
+        clearInterval(answerPollRef.current);
+        answerPollRef.current = null;
+        alert("Failed to check answer evaluation status.");
+      }
+    }, 2500);
+  };
+
 
   // ── NEW: Speak question aloud when voice mode is on and question changes ──
   useEffect(() => {
@@ -148,6 +270,8 @@ export default function Interview() {
     setRecording(false);
     setTranscribing(false);
   };
+
+
 
   // ── Security + proctor tracking ──
   useEffect(() => {
@@ -238,35 +362,78 @@ export default function Interview() {
     };
   }, []);
 
-  // start / resume interview
+
   useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        const res = await api.post(`/interview/${appId}/start`, {});
-        const allQuestions = res.data.questions || [];
-        const existingAnswers = res.data.answers || [];
-        const doneIds = new Set(existingAnswers.map((a) => Number(a.questionId)));
-        setAnsweredIds(doneIds);
-        setInterviewId(res.data.interviewId);
-        setQuestions(allQuestions);
-        const firstUnanswered = allQuestions.findIndex(
-          (q) => !doneIds.has(Number(q.questionId))
-        );
-        setIdx(firstUnanswered === -1 ? allQuestions.length - 1 : firstUnanswered);
-        setAnswerText("");
-        setFeedback(null);
-        setFinalResult(null);
-        resetSignals();
-      } catch (e) {
+  return () => {
+    if (generationPollRef.current) {
+      clearInterval(generationPollRef.current);
+      generationPollRef.current = null;
+    }
+
+    if (answerPollRef.current) {
+      clearInterval(answerPollRef.current);
+      answerPollRef.current = null;
+    }
+  };
+}, []);
+ //start/interview
+  useEffect(() => {
+  if (hasStartedRef.current) return;
+  hasStartedRef.current = true;
+
+  let cancelled = false;
+
+  (async () => {
+    try {
+      setLoading(true);
+
+      const res = await api.post(`/interview/${appId}/start`, {});
+      if (cancelled) return;
+
+      const data = res.data;
+
+      setInterviewId(data.interviewId || null);
+
+      if (data.generationStatus === "pending") {
+        setQuestions([]);
+        pollInterviewGeneration(appId);
+        return;
+      }
+
+      const allQuestions = data.questions || [];
+      const existingAnswers = data.answers || [];
+      const doneIds = new Set(
+        existingAnswers.map((a) => Number(a.questionId))
+      );
+
+      setAnsweredIds(doneIds);
+      setQuestions(allQuestions);
+
+      const firstUnanswered = allQuestions.findIndex(
+        (q) => !doneIds.has(Number(q.questionId))
+      );
+
+      setIdx(firstUnanswered === -1 ? 0 : firstUnanswered);
+      setAnswerText("");
+      setFeedback(null);
+      setFinalResult(null);
+      resetSignals();
+      setLoading(false);
+    } catch (e) {
+      console.error("start interview error:", e);
+      if (!cancelled) {
         alert(e?.response?.data?.message || "Failed to start interview.");
         navigate("/candidate/interview-invitation");
-      } finally {
         setLoading(false);
       }
-    })();
-  }, [appId]);
+    }
+  })();
 
+  return () => {
+    cancelled = true;
+  };
+}, [appId, navigate]);
+ 
   // reset on question change
   useEffect(() => {
     setAnswerText("");
@@ -443,45 +610,47 @@ export default function Interview() {
     }
   };
 
-  // ── submit ──
+
   const submit = async () => {
-    if (!interviewId || !currentQuestion) return;
-    if (!answerText.trim()) return alert("Please write an answer.");
-    if (isAnswered) return;
+  if (!interviewId || !currentQuestion) return;
+  if (!answerText.trim()) return alert("Please write an answer.");
+  if (isAnswered) return;
 
-    setSubmitting(true);
-    const timeTakenSec = Math.max(0, Math.round((Date.now() - startAtRef.current) / 1000));
+  setSubmitting(true);
+  const timeTakenSec = Math.max(0, Math.round((Date.now() - startAtRef.current) / 1000));
 
-    const finalWordCount = answerText.trim().split(/\s+/).filter(Boolean).length;
-    const editRatio = transcriptWordCountRef.current > 0
-      ? Math.round((finalWordCount / transcriptWordCountRef.current) * 100) / 100
-      : null;
-    const wordsPerSec = audioDurationRef.current > 0
-      ? Math.round((transcriptWordCountRef.current / audioDurationRef.current) * 100) / 100
-      : null;
+  const finalWordCount = answerText.trim().split(/\s+/).filter(Boolean).length;
+  const editRatio = transcriptWordCountRef.current > 0
+    ? Math.round((finalWordCount / transcriptWordCountRef.current) * 100) / 100
+    : null;
+  const wordsPerSec = audioDurationRef.current > 0
+    ? Math.round((transcriptWordCountRef.current / audioDurationRef.current) * 100) / 100
+    : null;
 
-    const payload = {
-      questionId: currentQuestion.questionId,
-      answerText: answerText.trim(),
-      timeTakenSec,
-      tabSwitchCount: tabSwitchRef.current,
-      pasteCount: pasteRef.current,
-      hiddenTimeMs: hiddenMsRef.current,
-      answerMode: voiceMode ? "voice" : "text",
-      voiceEditRatio: voiceMode ? editRatio : null,
-      voiceWordsPerSec: voiceMode ? wordsPerSec : null,
-    };
-
-    try {
-      const res = await api.post(`/interview/${interviewId}/answer`, payload);
-      setFeedback(res.data);
-      setAnsweredIds((prev) => new Set([...prev, Number(currentQuestion.questionId)]));
-    } catch (e) {
-      alert(e?.response?.data?.message || "Failed to submit answer.");
-    } finally {
-      setSubmitting(false);
-    }
+  const payload = {
+    questionId: currentQuestion.questionId,
+    answerText: answerText.trim(),
+    timeTakenSec,
+    tabSwitchCount: tabSwitchRef.current,
+    pasteCount: pasteRef.current,
+    hiddenTimeMs: hiddenMsRef.current,
+    answerMode: voiceMode ? "voice" : "text",
+    voiceEditRatio: voiceMode ? editRatio : null,
+    voiceWordsPerSec: voiceMode ? wordsPerSec : null,
   };
+
+  try {
+    const res = await api.post(`/interview/${interviewId}/answer`, payload);
+
+    if (res.data?.evaluationStatus === "pending") {
+      pollAnswerEvaluation(interviewId, currentQuestion.questionId);
+    }
+  } catch (e) {
+    alert(e?.response?.data?.message || "Failed to submit answer.");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const next = () => {
     if (idx < questions.length - 1) setIdx((v) => v + 1);
@@ -553,15 +722,13 @@ export default function Interview() {
 
   /* ── No questions ── */
   if (!currentQuestion) {
-    return (
-      <div style={s.page}>
-        <div style={s.completedCard}>
-          <p style={{ color: "#64748b" }}>No questions found for this interview.</p>
-          <button style={s.dashBtn} onClick={() => navigate("/candidate/interview-invitation")}>Go Back</button>
-        </div>
-      </div>
-    );
-  }
+  return (
+    <div style={s.loadingWrap}>
+      <div style={s.spinner} />
+      <p style={s.loadingText}>Generating interview questions…</p>
+    </div>
+  );
+}
 
   const diff = (currentQuestion.difficulty || "").toLowerCase();
   const type = (currentQuestion.type || "").toLowerCase();
