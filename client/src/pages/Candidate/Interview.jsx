@@ -100,68 +100,76 @@ export default function Interview() {
   const hasStartedRef = useRef(false);
 
 
+
     const pollInterviewGeneration = (appId) => {
-    const maxAttempts = 60;
-    let attempts = 0;
+  if (generationPollRef.current) return;
 
-    generationPollRef.current = setInterval(async () => {
-      attempts += 1;
+  const maxAttempts = 60;
+  let attempts = 0;
 
-      try {
-        const res = await api.get(`/interview/${appId}/status`);
-        const data = res.data;
-        const generationStatus = data?.generationStatus;
+  generationPollRef.current = setInterval(async () => {
+    attempts += 1;
 
-        if (generationStatus === "completed") {
-          clearInterval(generationPollRef.current);
-          generationPollRef.current = null;
+    try {
+      const res = await api.get(`/interview/${appId}/status?t=${Date.now()}`);
+      const data = res.data;
+      const generationStatus = data?.generationStatus;
 
-          const allQuestions = data.questions || [];
-          const existingAnswers = data.answers || [];
-          const doneIds = new Set(
-            existingAnswers.map((a) => Number(a.questionId))
-          );
+      if (
+        generationStatus === "completed" &&
+        Array.isArray(data.questions) &&
+        data.questions.length > 0
+      ) {
+        clearInterval(generationPollRef.current);
+        generationPollRef.current = null;
 
-          setInterviewId(data.interviewId);
-          setAnsweredIds(doneIds);
-          setQuestions(allQuestions);
+        
+        const allQuestions = Array.isArray(data.questions) ? data.questions : [];
+        const existingAnswers = data.answers || [];
+        const doneIds = new Set(
+          existingAnswers.map((a) => Number(a.questionId))
+        );
 
-          const firstUnanswered = allQuestions.findIndex(
-            (q) => !doneIds.has(Number(q.questionId))
-          );
+        setInterviewId(data.interviewId);
+        setAnsweredIds(doneIds);
+        setQuestions(allQuestions);
 
-          setIdx(firstUnanswered === -1 ? 0 : firstUnanswered);
-          setAnswerText("");
-          setFeedback(null);
-          setFinalResult(null);
-          resetSignals();
-          setLoading(false);
-          return;
-        }
+        const firstUnanswered = allQuestions.findIndex(
+          (q) => !doneIds.has(Number(q.questionId))
+        );
 
-        if (generationStatus === "failed") {
-          clearInterval(generationPollRef.current);
-          generationPollRef.current = null;
-          setLoading(false);
-          alert("Interview question generation failed.");
-          return;
-        }
+        setIdx(firstUnanswered === -1 ? 0 : firstUnanswered);
+        setAnswerText("");
+        setFeedback(null);
+        setFinalResult(null);
+        resetSignals();
+        setLoading(false);
+        return;
+      }
 
-        if (attempts >= maxAttempts) {
-          clearInterval(generationPollRef.current);
-          generationPollRef.current = null;
-          setLoading(false);
-          alert("Interview generation is taking too long. Please refresh.");
-        }
-      } catch (err) {
-        console.error("Interview generation poll failed:", err);
+      if (generationStatus === "failed") {
         clearInterval(generationPollRef.current);
         generationPollRef.current = null;
         setLoading(false);
-        alert("Failed to check interview generation status.");
+        alert("Interview question generation failed.");
+        return;
       }
-    }, 3000);
-  };
+
+      if (attempts >= maxAttempts) {
+        clearInterval(generationPollRef.current);
+        generationPollRef.current = null;
+        setLoading(false);
+        alert("Interview generation is taking too long. Please refresh.");
+      }
+    } catch (err) {
+      console.error("Interview generation poll failed:", err);
+      clearInterval(generationPollRef.current);
+      generationPollRef.current = null;
+      setLoading(false);
+      alert("Failed to check interview generation status.");
+    }
+  }, 3000);
+};
 
     const pollAnswerEvaluation = (interviewId, questionId) => {
     const maxAttempts = 60;
@@ -172,8 +180,8 @@ export default function Interview() {
 
       try {
         const res = await api.get(
-          `/interview/${interviewId}/answer-status/${questionId}`
-        );
+  `/interview/${interviewId}/answer-status/${questionId}?t=${Date.now()}`
+);
         const status = res.data?.status;
 
         if (status === "completed") {
@@ -394,7 +402,9 @@ export default function Interview() {
 
       setInterviewId(data.interviewId || null);
 
-      if (data.generationStatus === "pending") {
+      if (data.generationStatus === "pending" ||
+  (data.generationStatus === "completed" && (!Array.isArray(data.questions) || data.questions.length === 0))
+) {
         setQuestions([]);
         pollInterviewGeneration(appId);
         return;
@@ -721,11 +731,11 @@ export default function Interview() {
   }
 
   /* ── No questions ── */
-  if (!currentQuestion) {
+  if (!questions.length) {
   return (
     <div style={s.loadingWrap}>
       <div style={s.spinner} />
-      <p style={s.loadingText}>Generating interview questions…</p>
+      <p style={s.loadingText}>Still preparing questions…</p>
     </div>
   );
 }

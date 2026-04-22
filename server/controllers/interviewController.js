@@ -270,7 +270,10 @@ const Interview = require("../models/Interview");
 const { interviewQueue } = require("../queue/interviewQueue");
 
 function cleanHtmlToText(html = "") {
-  return String(html).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return String(html)
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function canStartServer(chosenDate) {
@@ -294,8 +297,9 @@ exports.getStatus = async (req, res) => {
       applicationId: appId,
       candidateId: userId,
     })
+      .sort({ createdAt: -1 })
       .select(
-        "status answers questions overallScore finalCheatingRisk completedAt generationStatus generationJobId lastAnswerEvaluationStatus lastAnswerEvaluationError"
+        "status answers questions overallScore finalCheatingRisk completedAt generationStatus generationJobId lastAnswerEvaluationStatus lastAnswerEvaluationError",
       )
       .lean();
 
@@ -314,7 +318,8 @@ exports.getStatus = async (req, res) => {
       status: interview.status,
       generationStatus: interview.generationStatus || "idle",
       generationJobId: interview.generationJobId || null,
-      lastAnswerEvaluationStatus: interview.lastAnswerEvaluationStatus || "idle",
+      lastAnswerEvaluationStatus:
+        interview.lastAnswerEvaluationStatus || "idle",
       lastAnswerEvaluationError: interview.lastAnswerEvaluationError || null,
       answeredCount: (interview.answers || []).length,
       totalCount: (interview.questions || []).length,
@@ -345,7 +350,8 @@ exports.getResult = async (req, res) => {
       .select("overallScore finalCheatingRisk completedAt status")
       .lean();
 
-    if (!interview) return res.status(404).json({ message: "No completed interview found." });
+    if (!interview)
+      return res.status(404).json({ message: "No completed interview found." });
 
     return res.json({
       overallScore: interview.overallScore,
@@ -369,22 +375,27 @@ exports.startInterview = async (req, res) => {
     const app = await Application.findById(appId)
       .populate({
         path: "job",
-        select: "title description skillsRequired rateSkills experience qualification careerLevel",
+        select:
+          "title description skillsRequired rateSkills experience qualification careerLevel",
       })
       .lean();
 
     if (!app) return res.status(404).json({ message: "Application not found" });
-    if (String(app.candidate) !== String(userId)) return res.status(403).json({ message: "Forbidden" });
+    if (String(app.candidate) !== String(userId))
+      return res.status(403).json({ message: "Forbidden" });
     if (app.status !== "InterviewConfirmed" || !app.chosenDate)
       return res.status(400).json({ message: "Interview not confirmed yet." });
 
     if (!canStartServer(app.chosenDate)) {
       const diffMs = new Date().getTime() - new Date(app.chosenDate).getTime();
       if (diffMs > 15 * 60 * 1000)
-        return res.status(403).json({ message: "Interview window has expired.", expired: true });
+        return res
+          .status(403)
+          .json({ message: "Interview window has expired.", expired: true });
 
       return res.status(403).json({
-        message: "Interview can only start within 10 minutes of scheduled time.",
+        message:
+          "Interview can only start within 10 minutes of scheduled time.",
       });
     }
 
@@ -392,7 +403,7 @@ exports.startInterview = async (req, res) => {
       applicationId: appId,
       candidateId: userId,
       status: { $ne: "completed" },
-    });
+    }).sort({ createdAt: -1 });
 
     if (existing) {
       return res.json({
@@ -414,7 +425,11 @@ exports.startInterview = async (req, res) => {
     const niceToHaveSkills = [];
 
     jobSkills.forEach((skill) => {
-      const keyVariants = [skill, skill.replace(/\s+/g, "_"), skill.replace(/[^a-zA-Z0-9]/g, "_")];
+      const keyVariants = [
+        skill,
+        skill.replace(/\s+/g, "_"),
+        skill.replace(/[^a-zA-Z0-9]/g, "_"),
+      ];
       let rating = "Nice to Have";
       for (const k of keyVariants) {
         if (rateSkills[k]) {
@@ -426,11 +441,16 @@ exports.startInterview = async (req, res) => {
     });
 
     let candidateSkills = [];
-    if (app.matchBreakdown?.candidate_skills && typeof app.matchBreakdown.candidate_skills === "object")
+    if (
+      app.matchBreakdown?.candidate_skills &&
+      typeof app.matchBreakdown.candidate_skills === "object"
+    )
       candidateSkills = Object.keys(app.matchBreakdown.candidate_skills);
 
     if (candidateSkills.length === 0) {
-      const processed = await ProcessedResume.findOne({ userId: String(app.candidate) })
+      const processed = await ProcessedResume.findOne({
+        userId: String(app.candidate),
+      })
         .sort({ createdAt: -1 })
         .lean();
 
@@ -443,11 +463,16 @@ exports.startInterview = async (req, res) => {
     const candLower = candidateSkills.map((s) => s.toLowerCase());
 
     const matchedSkills = candidateSkills.filter((s) =>
-      jobLower.some((js) => js.includes(s.toLowerCase()) || s.toLowerCase().includes(js))
+      jobLower.some(
+        (js) => js.includes(s.toLowerCase()) || s.toLowerCase().includes(js),
+      ),
     );
 
-    const missingSkills = jobSkills.filter((s) =>
-      !candLower.some((cs) => cs.includes(s.toLowerCase()) || s.toLowerCase().includes(cs))
+    const missingSkills = jobSkills.filter(
+      (s) =>
+        !candLower.some(
+          (cs) => cs.includes(s.toLowerCase()) || s.toLowerCase().includes(cs),
+        ),
     );
 
     const contextSnapshot = {
@@ -527,15 +552,23 @@ exports.submitAnswer = async (req, res) => {
       return res.status(400).json({ message: "Invalid interview id" });
 
     const interview = await Interview.findById(interviewId);
-    if (!interview) return res.status(404).json({ message: "Interview not found" });
-    if (String(interview.candidateId) !== String(userId)) return res.status(403).json({ message: "Forbidden" });
-    if (interview.status === "completed") return res.status(400).json({ message: "Interview already completed" });
+    if (!interview)
+      return res.status(404).json({ message: "Interview not found" });
+    if (String(interview.candidateId) !== String(userId))
+      return res.status(403).json({ message: "Forbidden" });
+    if (interview.status === "completed")
+      return res.status(400).json({ message: "Interview already completed" });
 
-    const q = interview.questions.find((x) => x.questionId === Number(questionId));
+    const q = interview.questions.find(
+      (x) => x.questionId === Number(questionId),
+    );
     if (!q) return res.status(404).json({ message: "Question not found" });
 
-    const alreadyAnswered = interview.answers.some((a) => Number(a.questionId) === Number(questionId));
-    if (alreadyAnswered) return res.status(409).json({ message: "Question already answered." });
+    const alreadyAnswered = interview.answers.some(
+      (a) => Number(a.questionId) === Number(questionId),
+    );
+    if (alreadyAnswered)
+      return res.status(409).json({ message: "Question already answered." });
 
     interview.lastAnswerEvaluationStatus = "pending";
     interview.lastAnswerEvaluationError = null;
@@ -586,11 +619,13 @@ exports.getAnswerStatus = async (req, res) => {
     }
 
     const interview = await Interview.findById(interviewId).lean();
-    if (!interview) return res.status(404).json({ message: "Interview not found" });
-    if (String(interview.candidateId) !== String(userId)) return res.status(403).json({ message: "Forbidden" });
+    if (!interview)
+      return res.status(404).json({ message: "Interview not found" });
+    if (String(interview.candidateId) !== String(userId))
+      return res.status(403).json({ message: "Forbidden" });
 
     const answer = (interview.answers || []).find(
-      (a) => Number(a.questionId) === Number(questionId)
+      (a) => Number(a.questionId) === Number(questionId),
     );
 
     if (answer) {
@@ -620,14 +655,19 @@ exports.completeInterview = async (req, res) => {
     const { interviewId } = req.params;
 
     const interview = await Interview.findById(interviewId);
-    if (!interview) return res.status(404).json({ message: "Interview not found" });
-    if (String(interview.candidateId) !== String(userId)) return res.status(403).json({ message: "Forbidden" });
+    if (!interview)
+      return res.status(404).json({ message: "Interview not found" });
+    if (String(interview.candidateId) !== String(userId))
+      return res.status(403).json({ message: "Forbidden" });
 
     const scores = interview.answers.map((a) => Number(a.score || 0));
-    const overallScore = scores.length ? scores.reduce((x, y) => x + y, 0) / scores.length : 0;
+    const overallScore = scores.length
+      ? scores.reduce((x, y) => x + y, 0) / scores.length
+      : 0;
 
     const finalCheatingRisk = interview.answers.length
-      ? interview.answers.reduce((acc, a) => acc + (a.cheatingRisk || 0), 0) / interview.answers.length
+      ? interview.answers.reduce((acc, a) => acc + (a.cheatingRisk || 0), 0) /
+        interview.answers.length
       : 0;
 
     interview.overallScore = Number(overallScore.toFixed(2));
