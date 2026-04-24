@@ -5,10 +5,16 @@ __pycache__/
 *.pyc
 
 # Node
+client/node_modules/
+server/node_modules/
 node_modules/
 
 # Environment
 .env
+client/.env
+server/.env
+nlp-service/.env
+
 
 # Build
 dist/
