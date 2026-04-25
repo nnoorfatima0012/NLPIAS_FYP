@@ -1,7 +1,8 @@
 // client/src/pages/Candidate/MockAnalyticsPage.jsx
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./mockPages.css";
-import { mockAnalytics } from "../../utils/mockApi";
+import { mockInterviewAnalytics } from "../../utils/mockInterviewApi";
 
 function scoreVariant(score) {
   const n = Number(score);
@@ -11,71 +12,25 @@ function scoreVariant(score) {
   return "bad";
 }
 
-const SKILL_PALETTE = [
-  { a: "#2563eb", b: "#1d4ed8" },
-  { a: "#f59e0b", b: "#d97706" },
-  { a: "#7c3aed", b: "#6d28d9" },
-  { a: "#0ea5e9", b: "#0284c7" },
-  { a: "#10b981", b: "#059669" },
-  { a: "#ef4444", b: "#dc2626" },
-  { a: "#14b8a6", b: "#0f766e" },
-];
-
-function hashString(str) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
-  return h;
-}
-
-function skillColors(skill) {
-  const idx = hashString(String(skill)) % SKILL_PALETTE.length;
-  return SKILL_PALETTE[idx];
-}
-
 function safeJsonParse(key) {
   try {
     const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    return JSON.parse(raw);
+    return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
 }
 
 function normalizeSession(s, fallbackStart, fallbackCompleted) {
-  // Prefer values from the session itself (server), else from last completed, else from last start payload
   const role = s?.role ?? fallbackCompleted?.role ?? fallbackStart?.role ?? "Unknown Role";
   const level = s?.level ?? fallbackCompleted?.level ?? fallbackStart?.level ?? "Unknown Level";
   const interviewType =
     s?.interviewType ?? fallbackCompleted?.interviewType ?? fallbackStart?.interviewType ?? "Interview";
 
-  // skillBreakdown priority: server -> last completed -> derive from selected skills (start page)
-  const serverBreakdown = s?.skillBreakdown && Object.keys(s.skillBreakdown).length ? s.skillBreakdown : null;
-  const completedBreakdown =
-    fallbackCompleted?.skillBreakdown && Object.keys(fallbackCompleted.skillBreakdown).length
-      ? fallbackCompleted.skillBreakdown
-      : null;
-
-  let skillBreakdown = serverBreakdown ?? completedBreakdown ?? null;
-
-  // If no breakdown exists, generate "realistic" placeholder based on selected skills (NOT random each render)
-  if (!skillBreakdown) {
-    const skills = Array.isArray(fallbackStart?.skills) ? fallbackStart.skills : [];
-    // deterministic values based on hash (stable, realistic)
-    const derived = {};
-    skills.slice(0, 6).forEach((k) => {
-      const base = (hashString(k + role + level) % 41) + 55; // 55–95
-      derived[k] = base;
-    });
-    skillBreakdown = Object.keys(derived).length ? derived : {};
-  }
-
-  // overallScore priority: server -> last completed -> derive from breakdown average
-  let overallScore = s?.overallScore ?? fallbackCompleted?.overallScore ?? null;
-  if (overallScore == null) {
-    const vals = Object.values(skillBreakdown || {}).map(Number).filter((x) => Number.isFinite(x));
-    if (vals.length) overallScore = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
-  }
+  const skillBreakdown =
+    s?.skillBreakdown && Object.keys(s.skillBreakdown).length
+      ? s.skillBreakdown
+      : fallbackCompleted?.skillBreakdown || {};
 
   return {
     ...s,
@@ -83,39 +38,47 @@ function normalizeSession(s, fallbackStart, fallbackCompleted) {
     level,
     interviewType,
     skillBreakdown,
-    overallScore,
+    overallScore: s?.overallScore ?? fallbackCompleted?.overallScore ?? null,
+    communicationScore:
+      typeof s?.communicationScore === "number"
+        ? s.communicationScore
+        : fallbackCompleted?.communicationScore ?? null,
+    technicalScore:
+      typeof s?.technicalScore === "number"
+        ? s.technicalScore
+        : fallbackCompleted?.technicalScore ?? null,
   };
 }
 
 export default function MockAnalyticsPage() {
-  const userId = localStorage.getItem("userId");
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      const res = await mockAnalytics();
-      setData(res.data);
-    } catch (e) {
-      console.error(e);
-      alert("Failed to load analytics");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-   useEffect(() => {
-       load();
-    }, []);
-
   const fallbackStart = useMemo(() => safeJsonParse("mockLastStartPayload"), []);
-  const fallbackCompleted = useMemo(() => safeJsonParse("mockLastCompletedSession"), []);
+  const fallbackCompleted = useMemo(
+    () => safeJsonParse("mockLastCompletedSession"),
+    []
+  );
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const res = await mockInterviewAnalytics();
+        setData(res.data);
+      } catch (e) {
+        console.error(e);
+        alert("Failed to load analytics.");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   const sessions = useMemo(() => {
     const raw = data?.sessions || [];
 
-    // If backend returns nothing yet, show at least one realistic card using last completed/start
     if (!raw.length) {
       const seed = fallbackCompleted || fallbackStart;
       if (!seed) return [];
@@ -128,6 +91,8 @@ export default function MockAnalyticsPage() {
             interviewType: seed.interviewType,
             overallScore: seed.overallScore,
             skillBreakdown: seed.skillBreakdown,
+            communicationScore: seed.communicationScore,
+            technicalScore: seed.technicalScore,
           },
           fallbackStart,
           fallbackCompleted
@@ -138,106 +103,122 @@ export default function MockAnalyticsPage() {
     return raw.map((s) => normalizeSession(s, fallbackStart, fallbackCompleted));
   }, [data, fallbackStart, fallbackCompleted]);
 
-  const content = useMemo(() => {
-    if (loading) {
-      return (
-        <div className="mock-analyticsWrap">
-          <div className="mock-analyticsCard">Loading…</div>
-        </div>
-      );
-    }
-
-
+  if (loading) {
     return (
-      <div className="mock-analyticsWrap">
-        <div className="mock-analyticsShell">
-          <div className="mock-analyticsHeader">
-            <div className="mock-analyticsLine" />
-            <h1 className="mock-analyticsTitle">Recent Sessions</h1>
-            <div className="mock-analyticsLine" />
-          </div>
-
-          {sessions.length === 0 ? (
-            <div className="mock-analyticsCard">
-              <div className="mock-analyticsEmpty">
-                Complete a mock session to see your progress and skill gaps.
-              </div>
-            </div>
-          ) : (
-            <div className="mock-analyticsList">
-              {sessions.map((s) => {
-                const overall = s.overallScore ?? null;
-                const overallText = overall == null ? "N/A" : `${overall}%`;
-                const overallVar = scoreVariant(overall);
-
-                const breakdown = s.skillBreakdown || {};
-                const entries = Object.entries(breakdown);
-
-                const weakSkills = entries
-                  .filter(([, v]) => Number(v) < 60)
-                  .map(([k]) => k);
-
-                return (
-                  <div key={s._id} className="mock-sessionCardX">
-                    <div className="mock-sessionTopRow">
-                      <div className="mock-sessionChips">
-                        <span className="mock-chip mock-chip--role mock-chip--dropdown">
-                          {s.role}
-                        </span>
-                        <span className="mock-chip mock-chip--level">
-                          {s.level}
-                        </span>
-                        <span className="mock-chip mock-chip--type mock-chip--dropdown">
-                          {s.interviewType}
-                        </span>
-                      </div>
-
-                      <span className={`mock-overallPill mock-overallPill--${overallVar}`}>
-                        Overall: {overallText}
-                      </span>
-                    </div>
-
-                    <div className="mock-skillHeaderRow">
-                      <div className="mock-skillHeaderText">Skill Breakdown</div>
-                      <div className="mock-skillHeaderLine" />
-                    </div>
-
-                    {entries.length === 0 ? (
-                      <div className="mock-analyticsMuted">No skill breakdown available.</div>
-                    ) : (
-                      <div className="mock-skillPillsRow">
-                        {entries.map(([k, v]) => {
-                          const c = skillColors(k);
-                          return (
-                            <span
-                              key={k}
-                              className="mock-skillPill"
-                              style={{ background: `linear-gradient(180deg, ${c.a}, ${c.b})` }}
-                            >
-                              {k}: {v}%
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    <div className="mock-sessionBottomLine" />
-
-                    <div className="mock-weakRow">
-                      <span className="mock-weakLabel">Weak skills:</span>
-                      <span className="mock-weakText">
-                        {weakSkills.length ? weakSkills.join(", ") : "None detected"}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+      <div className="mock-page">
+        <div className="mock-container">
+          <div className="mock-card mock-loadingCard">Loading analytics...</div>
         </div>
       </div>
     );
-  }, [loading, sessions, userId]);
+  }
 
-  return content;
+  return (
+    <div className="mock-page">
+      <div className="mock-container">
+        <div className="mock-hero">
+          <div>
+            <p className="mock-kicker">Analytics</p>
+            <h1 className="mock-title">Mock Interview Performance</h1>
+            <p className="mock-subtitle">
+              Review your completed sessions, compare your scores, and identify
+              your weaker areas so you can improve your interview performance.
+            </p>
+          </div>
+        </div>
+
+        <div className="mock-footerActions" style={{ marginTop: 0, marginBottom: 20 }}>
+          <button
+            type="button"
+            className="mock-btnPrimary"
+            onClick={() => navigate("/candidate/mock-interview")}
+          >
+            Start New Mock Interview
+          </button>
+        </div>
+
+        {sessions.length === 0 ? (
+          <div className="mock-card">
+            <div className="mock-cardBody">
+              <div className="mock-emptyState">
+                Complete a mock interview session to see your performance analytics.
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mock-analyticsGrid">
+            {sessions.map((s) => {
+              const overallVar = scoreVariant(s.overallScore);
+              const entries = Object.entries(s.skillBreakdown || {});
+              const weakSkills = entries
+                .filter(([, v]) => Number(v) < 60)
+                .map(([k]) => k);
+
+              return (
+                <div key={s._id} className="mock-card">
+                  <div className="mock-cardBody">
+                    <div className="mock-analyticsTop">
+                      <div>
+                        <h3 className="mock-sectionTitle">{s.role}</h3>
+                        <p className="mock-subtitleSmall">
+                          {s.level} · {s.interviewType}
+                        </p>
+                      </div>
+
+                      <div className={`mock-scoreBadge ${overallVar}`}>
+                        {s.overallScore ?? "N/A"}%
+                      </div>
+                    </div>
+
+                    {(typeof s.communicationScore === "number" ||
+                      typeof s.technicalScore === "number") && (
+                      <div className="mock-analyticsBlock">
+                        <div className="mock-tagWrap">
+                          {typeof s.communicationScore === "number" && (
+                            <span className="mock-tagBlue">
+                              Communication: {s.communicationScore}%
+                            </span>
+                          )}
+                          {typeof s.technicalScore === "number" && (
+                            <span className="mock-tagBlue">
+                              Technical: {s.technicalScore}%
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mock-analyticsBlock">
+                      <p className="mock-feedbackText">
+                        <strong>Skill Breakdown</strong>
+                      </p>
+
+                      {entries.length === 0 ? (
+                        <p className="mock-muted">No skill breakdown available.</p>
+                      ) : (
+                        <div className="mock-tagWrap">
+                          {entries.map(([k, v]) => (
+                            <span key={k} className="mock-tagBlue">
+                              {k}: {v}%
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mock-analyticsBlock">
+                      <p className="mock-feedbackText">
+                        <strong>Weak skills:</strong>{" "}
+                        {weakSkills.length ? weakSkills.join(", ") : "None detected"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
