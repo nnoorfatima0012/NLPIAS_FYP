@@ -2,35 +2,63 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./mockPages.css";
-import { mockStart } from "../../utils/mockApi";
+import { mockInterviewStart } from "../../utils/mockInterviewApi";
 
 const ROLE_SKILLS = {
-  "Frontend Developer": ["HTML", "CSS", "JavaScript", "React", "Performance Optimization"],
-  "Backend Developer": ["Node.js", "Express", "REST API", "Databases", "Authentication"],
-  "Full Stack Developer": ["JavaScript", "React", "Node.js", "REST API", "Databases"],
-  "Mobile App Developer": ["React Native", "Android", "iOS", "APIs", "State Management"],
+  "Frontend Developer": [
+    "HTML",
+    "CSS",
+    "JavaScript",
+    "React",
+    "Performance Optimization",
+  ],
+  "Backend Developer": [
+    "Node.js",
+    "Express",
+    "REST API",
+    "Databases",
+    "Authentication",
+  ],
+  "Full Stack Developer": [
+    "JavaScript",
+    "React",
+    "Node.js",
+    "REST API",
+    "Databases",
+  ],
+  "Mobile App Developer": [
+    "React Native",
+    "Android",
+    "iOS",
+    "APIs",
+    "State Management",
+  ],
   "Data Analyst": ["SQL", "Python", "Power BI", "Statistics", "Excel"],
 };
 
-const LEVELS = ["Junior (0–2 years)", "Mid-Level (2–5 years)", "Senior (5+ years)"];
+const LEVELS = [
+  "Junior (0–2 years)",
+  "Mid-Level (2–5 years)",
+  "Senior (5+ years)",
+];
+
 const TYPES = ["Technical", "HR / Behavioral", "Mixed", "System Design"];
 const DIFFICULTIES = ["Easy", "Medium", "Hard", "Adaptive"];
 
-function Panel({ icon, title, children, className = "" }) {
+function Panel({ title, children, className = "" }) {
   return (
-    <section className={`mock-panel ${className}`}>
-      <div className="mock-panelHead">
-        <div className="mock-icon">{icon}</div>
-        <h3 className="mock-panelTitle">{title}</h3>
+    <section className={`mock-card ${className}`}>
+      <div className="mock-cardBody">
+        <h3 className="mock-sectionTitle">{title}</h3>
+        {children}
       </div>
-      <div className="mock-panelBody">{children}</div>
     </section>
   );
 }
 
 function RadioRow({ name, value, selected, onChange, label }) {
   return (
-    <label className={`mock-radioRow ${selected ? "is-on" : ""}`}>
+    <label className={`mock-optionRow ${selected ? "is-active" : ""}`}>
       <input
         type="radio"
         name={name}
@@ -38,44 +66,44 @@ function RadioRow({ name, value, selected, onChange, label }) {
         checked={selected}
         onChange={() => onChange(value)}
       />
-      <span className="mock-radioDot" aria-hidden="true" />
-      <span className="mock-radioLabel">{label}</span>
+      <span className="mock-optionMark" />
+      <span>{label}</span>
     </label>
   );
 }
 
 function CheckRow({ checked, onChange, label }) {
   return (
-    <label className="mock-checkRow">
+    <label className={`mock-optionRow ${checked ? "is-active" : ""}`}>
       <input type="checkbox" checked={checked} onChange={onChange} />
-      <span className="mock-checkBox" aria-hidden="true" />
-      <span className="mock-checkLabel">{label}</span>
+      <span className="mock-optionMark" />
+      <span>{label}</span>
     </label>
   );
 }
 
 export default function MockStartPage() {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("userId");
 
   const [role, setRole] = useState("Frontend Developer");
   const [customRole, setCustomRole] = useState("");
-
   const [level, setLevel] = useState("Junior (0–2 years)");
   const [interviewType, setInterviewType] = useState("Technical");
   const [difficulty, setDifficulty] = useState("Medium");
   const [mode, setMode] = useState("text");
+  const [skills, setSkills] = useState([]);
+  const [starting, setStarting] = useState(false);
 
   const suggestedSkills = useMemo(() => {
-    return role === "Custom" ? [] : (ROLE_SKILLS[role] || []);
+    return role === "Custom" ? [] : ROLE_SKILLS[role] || [];
   }, [role]);
-
-  const [skills, setSkills] = useState([]);
 
   const effectiveRole = role === "Custom" ? customRole.trim() : role;
 
-  const toggleSkill = (s) => {
-    setSkills((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
+  const toggleSkill = (skill) => {
+    setSkills((prev) =>
+      prev.includes(skill) ? prev.filter((x) => x !== skill) : [...prev, skill]
+    );
   };
 
   const selectAll = () => setSkills(suggestedSkills);
@@ -86,46 +114,68 @@ export default function MockStartPage() {
     !!level &&
     !!interviewType &&
     !!difficulty &&
-    !!mode;
+    !!mode &&
+    !starting;
 
   const onStart = async () => {
     if (!canStart) return;
 
-    const payload = {
-      role: effectiveRole,
-      level,
-      interviewType,
-      skills,
-      difficulty,
-      mode,
-    };
-    localStorage.setItem("mockLastStartPayload", JSON.stringify(payload));
+    try {
+      setStarting(true);
 
-    const res = await mockStart(payload);
-    const sessionId = res.data?.sessionId;
+      const payload = {
+        role: effectiveRole,
+        level,
+        interviewType,
+        skills,
+        difficulty,
+        mode,
+      };
 
-    if (!sessionId) {
-      alert("Failed to start session.");
-      return;
+      localStorage.setItem("mockLastStartPayload", JSON.stringify(payload));
+
+      const res = await mockInterviewStart(payload);
+      const sessionId = res.data?.sessionId;
+
+      if (!sessionId) {
+        alert("Failed to start mock interview session.");
+        return;
+      }
+
+      navigate(`/candidate/mock-interview/session/${sessionId}`);
+    } catch (err) {
+      console.error(err);
+      alert(err?.response?.data?.message || "Failed to start mock interview.");
+    } finally {
+      setStarting(false);
     }
-
-    navigate(`/candidate/mock-interview/session/${sessionId}`);
   };
-    const onViewAnalytics = () => {
+
+  const onViewAnalytics = () => {
     navigate("/candidate/mock-interview/analytics");
   };
 
   return (
     <div className="mock-page">
+      <div className="mock-container">
+        <div className="mock-hero">
+          <div>
+            <p className="mock-kicker">Mock Interview</p>
+            <h1 className="mock-title">Practice with confidence</h1>
+            <p className="mock-subtitle">
+              Build a personalized mock interview based on your target role,
+              experience level, interview type, and skills. Answer by text or
+              voice and receive professional feedback for every response.
+            </p>
+          </div>
+        </div>
 
-      <div className="mock-shell">
-        {/* Top row panels */}
-        <div className="mock-gridTop">
-          <Panel icon="🎯" title="Target Job Role">
+        <div className="mock-grid">
+          <Panel title="Target Job Role">
             <div className="mock-field">
-              <div className="mock-fieldLabel">Select Role:</div>
+              <label className="mock-label">Select Role</label>
               <select
-                className="mock-select"
+                className="mock-input"
                 value={role}
                 onChange={(e) => {
                   setRole(e.target.value);
@@ -137,94 +187,99 @@ export default function MockStartPage() {
                 <option>Full Stack Developer</option>
                 <option>Mobile App Developer</option>
                 <option>Data Analyst</option>
-                <option value="Custom">Custom (User types)</option>
+                <option value="Custom">Custom</option>
               </select>
-
-              {role === "Custom" && (
-                <div className="mock-field" style={{ marginTop: 10 }}>
-                  <div className="mock-fieldLabel">Custom Role</div>
-                  <input
-                    className="mock-input"
-                    value={customRole}
-                    onChange={(e) => setCustomRole(e.target.value)}
-                    placeholder="e.g., QA Engineer"
-                  />
-                </div>
-              )}
             </div>
+
+            {role === "Custom" && (
+              <div className="mock-field">
+                <label className="mock-label">Custom Role</label>
+                <input
+                  className="mock-input"
+                  value={customRole}
+                  onChange={(e) => setCustomRole(e.target.value)}
+                  placeholder="e.g. QA Engineer"
+                />
+              </div>
+            )}
           </Panel>
 
-          <Panel icon="🎓" title="Experience Level">
-            <div className="mock-radioGroup">
-              {LEVELS.map((l) => (
+          <Panel title="Experience Level">
+            <div className="mock-stack">
+              {LEVELS.map((item) => (
                 <RadioRow
-                  key={l}
+                  key={item}
                   name="level"
-                  value={l}
-                  label={l}
-                  selected={level === l}
+                  value={item}
+                  label={item}
+                  selected={level === item}
                   onChange={setLevel}
                 />
               ))}
             </div>
           </Panel>
 
-          <Panel icon="🧠" title="Interview Type">
-            <div className="mock-radioGroup">
-              {TYPES.map((t) => (
+          <Panel title="Interview Type">
+            <div className="mock-stack">
+              {TYPES.map((item) => (
                 <RadioRow
-                  key={t}
+                  key={item}
                   name="type"
-                  value={t}
-                  label={t}
-                  selected={interviewType === t}
+                  value={item}
+                  label={item}
+                  selected={interviewType === item}
                   onChange={setInterviewType}
                 />
               ))}
             </div>
           </Panel>
 
-          <Panel icon="📊" title="Difficulty Level">
-            <div className="mock-radioGroup">
-              {DIFFICULTIES.map((d) => (
+          <Panel title="Difficulty Level">
+            <div className="mock-stack">
+              {DIFFICULTIES.map((item) => (
                 <RadioRow
-                  key={d}
+                  key={item}
                   name="difficulty"
-                  value={d}
-                  label={d}
-                  selected={difficulty === d}
+                  value={item}
+                  label={item}
+                  selected={difficulty === item}
                   onChange={setDifficulty}
                 />
               ))}
             </div>
           </Panel>
-        </div>
 
-        {/* Bottom row: skills + mode */}
-        <div className="mock-gridBottom">
-          <Panel icon="⚙️" title="Skills Focus (Optional)" className="span-2">
+          <Panel title="Skills Focus" className="mock-span-2">
             {suggestedSkills.length === 0 ? (
-              <div className="mock-mutedNote">
-                Skills autosuggest will appear for predefined roles.
-              </div>
+              <p className="mock-muted">
+                Skill suggestions will appear automatically for predefined roles.
+              </p>
             ) : (
               <>
-                <div className="mock-skillTop">
-                  <button type="button" className="mock-miniBtn" onClick={selectAll}>
+                <div className="mock-toolbar">
+                  <button
+                    type="button"
+                    className="mock-btnSecondary"
+                    onClick={selectAll}
+                  >
                     Select All
                   </button>
-                  <button type="button" className="mock-miniBtn" onClick={clearAll}>
+                  <button
+                    type="button"
+                    className="mock-btnGhost"
+                    onClick={clearAll}
+                  >
                     Clear
                   </button>
                 </div>
 
                 <div className="mock-skillGrid">
-                  {suggestedSkills.map((s) => (
+                  {suggestedSkills.map((skill) => (
                     <CheckRow
-                      key={s}
-                      label={s}
-                      checked={skills.includes(s)}
-                      onChange={() => toggleSkill(s)}
+                      key={skill}
+                      label={skill}
+                      checked={skills.includes(skill)}
+                      onChange={() => toggleSkill(skill)}
                     />
                   ))}
                 </div>
@@ -232,8 +287,8 @@ export default function MockStartPage() {
             )}
           </Panel>
 
-          <Panel icon="🎤" title="Interview Mode">
-            <div className="mock-radioGroup">
+          <Panel title="Interview Mode">
+            <div className="mock-stack">
               <RadioRow
                 name="mode"
                 value="text"
@@ -252,23 +307,22 @@ export default function MockStartPage() {
           </Panel>
         </div>
 
-        {/* Big centered CTA like the screenshot */}
-        <div className="mock-cta">
-
+        <div className="mock-footerActions">
           <button
             type="button"
-            className="mock-startBtn"
+            className="mock-btnPrimary"
             disabled={!canStart}
             onClick={onStart}
           >
-            Start Mock Interview
+            {starting ? "Starting..." : "Start Mock Interview"}
           </button>
-                    <button
+
+          <button
             type="button"
-            className="mock-secondaryBtn"
+            className="mock-btnGhost"
             onClick={onViewAnalytics}
           >
-            View Previous Sessions Analytics
+            View Previous Session Analytics
           </button>
         </div>
       </div>
