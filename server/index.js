@@ -18,7 +18,7 @@ const accountRoutes = require('./routes/accountRoutes');
 const recruiterProfileRoutes = require('./routes/recruiterProfileRoutes');
 
 const interviewRoutes = require("./routes/interviewRoutes");
-const mockRoutes = require("./routes/mockRoutes");
+const mockInterviewRoutes = require("./routes/mockInterviewRoutes");
 const transcribeRoutes = require("./routes/transcribeRoutes"); // ← VOICE: NEW
 
 const app = express();
@@ -66,7 +66,7 @@ app.use('/api/applications', applicationRoutes);
 
 // candidate profile
 app.use('/api/profile', profileRoutes);
-app.use("/api/mock", mockRoutes);
+app.use("/api/mockInterview", mockInterviewRoutes);
 // 🔹 NEW: recruiter profile base URL
 app.use('/api/recruiter/profile', recruiterProfileRoutes);
 
