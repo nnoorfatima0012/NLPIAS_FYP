@@ -66,7 +66,7 @@ app.use('/api/applications', applicationRoutes);
 
 // candidate profile
 app.use('/api/profile', profileRoutes);
-app.use("/api/mockInterview", mockInterviewRoutes);
+app.use("/api/mock", mockInterviewRoutes);
 // 🔹 NEW: recruiter profile base URL
 app.use('/api/recruiter/profile', recruiterProfileRoutes);
 

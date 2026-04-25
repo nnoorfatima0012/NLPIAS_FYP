@@ -20,6 +20,7 @@ from services.pdf_generator import generate_resume_pdf_bytes
 from services.bm25_index import BM25Index
 bm25_index = BM25Index()
 from interview_routes import router as interview_router
+from mockInterview_routes import router as mock_interview_router
 
 
 app = FastAPI(title="TalentHire NLP Service")
@@ -213,3 +214,4 @@ def bm25_rank_from_index(req: BM25QueryRequest):
     ranked = bm25_index.rank(query)
     return {"ranked": ranked, "version": bm25_index.version}
 app.include_router(interview_router)
+app.include_router(mock_interview_router)
